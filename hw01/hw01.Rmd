@@ -1,0 +1,80 @@
+---
+title: "Modern Data Structure HW01"
+author: "Xueying Huang"
+date: '2019-09-22'
+output:
+  html_notebook:
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
+```
+
+|variable|description|
+|:------|:------|
+|major_code|Major code, FO1DP in ACS PUMS|
+|major|Major description|
+|major_category|Category of major from Carnevale et al|
+|grad_total|Total number of people with major|
+|grad_sample_size|Sample size (unweighted) of full-time, year-round ONLY (used for earnings)|
+|grad_employed|Number employed (ESR == 1 or 2)|
+|grad_employed_fulltime_yearround|Employed at least 50 weeks (WKW == 1) and at least 35 hours (WKHP >= 35)|
+|grad_unemployed|Number unemployed (ESR == 3)|
+|grad_unemployment_rate|Unemployed / (Unemployed + Employed)|
+|grad_p25th|25th percentile of earnings|
+|grad_median|Median earnings of full-time, year-round workers|
+|grad_p75th|75th percentile of earnings|
+|nongrad_total|Total number of people with major|
+|nongrad_employed|Number employed (ESR == 1 or 2)|
+|nongrad_employed_fulltime_yearround|Employed at least 50 weeks (WKW == 1) and at least 35 hours (WKHP >= 35)|
+|nongrad_unemployed|Number unemployed (ESR == 3)|
+|nongrad_unemployment_rate|Unemployed / (Unemployed + Employed)|
+|nongrad_p25th|25th percentile of earnings|
+|nongrad_median|Median earnings of full-time, year-round workers|
+|nongrad_p75th|75th percentile of earnings|
+|grad_share|grad_total / (grad_total + nongrad_total)|
+|grad_premium|(grad_median-nongrad_median)/nongrad_median|
+
+```{r}
+library(fivethirtyeight)
+data(package = "fivethirtyeight")
+?college_grad_students
+my_dataset<-college_grad_students
+summary(my_dataset)
+```
+
+```{r,echo = TRUE}
+DT::datatable(my_dataset)
+business_grad_students <- subset(my_dataset, major_category == "Business")
+colnames(business_grad_students) <- c("major_code","major","major_category","graduate_total", "graduate_sample_size","graduate_employed","graduate_employed_fulltime_yearround","graduate_unemployed", "graduate_unemployment_rate","graduate_p25th","graduate_median","graduate_p75th","nongraduate_total", "nongraduate_employed","nongraduate_employed_fulltime_yearround","nongraduate_unemployed", "nongraduate_unemployment_rate","graduate_p25th","nongraduate_median","nongraduate_p75th", "graduate_share","graduate_premium")
+knitr::kable(business_grad_students)
+```
+
+\[
+h_i\left(x\right)=g\left(i^Tx\right)=\frac{1}{1+e^{-i^Tx}}\\
+For\ a\ given\ graduate\ employment\ rate, h_i\left(x\right)\ indicates\ the\  probability\ that\ h_i\left(x\right)=1, which\ means\ major\ category\ is\ Business.
+\]
+
+
+
+```{r}
+library(ggplot2)
+ggplot(my_dataset, aes(x= grad_premium, y = grad_unemployment_rate, color = major_category))+geom_point()+labs(title = "Relationship Between Unemployment Rate and Salary Premium")
+```
+
+![Image: Choosing a Major](images/mini-course-choosing-a-major.jpg)
+
+Here is Lili's^["Lili" is English name of Xueying Huang] github!  
+
+> We need people to be savvy about how to use data analytics and artificial intelligence on all the important decisions of today.
+
