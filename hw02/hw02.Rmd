@@ -1,0 +1,75 @@
+---
+title: "Modern Data Structure HW02"
+author: "Xueying Huang"
+date: '2019-09-27'
+output:
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+always_allow_html: yes
+---
+
+```{r, warning=FALSE}
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(readr)
+
+rawData <- read_csv("U.S._Chronic_Disease_Indicators__CDI_.csv",col_names = TRUE)
+cleanData <- rawData %>%
+  filter(Question == "Binge drinking prevalence among adults aged >= 18 years" | Question == "Poverty") %>%
+  filter(DataValueType == "Crude Prevalence") %>%
+  filter(StratificationCategory1 == "Overall" | StratificationCategory1 == "Gender") %>%
+  filter((Question == "Poverty" & StratificationCategory1 == "Overall" )|(Question == "Binge drinking prevalence among adults aged >= 18 years" )) %>%
+  select(LocationDesc, LocationAbbr, YearStart, Question, DataValueAlt,Stratification1) %>%
+  group_by(YearStart, LocationDesc) %>%
+  spread(key = Stratification1, value = DataValueAlt)
+
+cleanData_poverty <- cleanData %>%
+  filter(Question == "Poverty") %>%
+  select(state = LocationDesc, stateabb = LocationAbbr, year = YearStart, poverty = Overall)
+
+cleanData_drink <- cleanData %>%
+  filter(Question == "Binge drinking prevalence among adults aged >= 18 years") %>%
+  select(state = LocationDesc, stateabb = LocationAbbr, year = YearStart, binge_all = Overall, binge_male = Male, binge_female = Female)
+
+tidyData <- full_join(cleanData_drink,cleanData_poverty, by = c("state", "stateabb", "year"))
+write.csv(tidyData, file = "binge_clean.csv", row.names = FALSE)
+```
+```{r}
+yeartable <- tidyData %>%
+ arrange(desc(year))
+bingeDrink <- tidyData %>%
+  filter(year == yeartable[1,"year"]) %>%
+  select(state, year, binge_all, binge_male, binge_female) %>%
+  arrange(desc(binge_all))
+head(bingeDrink, 10)
+```
+```{r}
+library(ggplot2)
+tidyData_na <- na.omit(tidyData)
+ggplot(tidyData_na, aes(x = binge_all, y = poverty, color = year)) + geom_point() + geom_smooth(method = "loess") + labs(title="The Correlation Between Poverty And Binge Drinking", x="Overall Prevalence Of Binge Drinking", y="Overall Poverty Prevalence In A State")+ theme(plot.title = element_text(hjust = 0.5))
+```
+Comment: I used all years and highlight them by color. 1) We noticed that the prevalence of poverty in the states was relatively high when the binge drinking prevalence was less than 15% or more than 25%. For some states which have high poverty prevalence, citizens did not have spared money to buy wine/beer, so the binge drinking prevalence was low in those states. As the prevalence of poverty decreased, the citizens owned more available money to spend on social events, which caused the increase of binge drink prevalence. However, when the binge drinking prevalence exceeded 25%, poverty prevalence reached another high peak because excessive drinking might impact the normal work and life negatively, which resulted in prevalence of poverty. 2) From 2011 to 2016, when the binge drinking prevalence keeped the same, the poverty prevalence has a decreasing trend in most states, which might resulted from the upward of global economy.
+
+```{r}
+library(dplyr)
+ growthData_avg <- tidyData_na %>%
+  group_by(state) %>%
+  summarize(total_growth_rate = last(binge_all, order_by = year)-first(binge_all, order_by = year), firstyear_rate = first(binge_all, order_by = year), period = max(year) - min(year) + 1) %>%
+   mutate(avg_growth_rate = total_growth_rate / (firstyear_rate*period)*100, dataValueUnit = '%') %>%
+   select(state, avg_growth_rate, dataValueUnit) %>%
+   arrange(desc(avg_growth_rate)) 
+ biggest_increase <- head(growthData_avg, 5)
+ biggest_decrease <- tail(growthData_avg, 5) %>%
+   arrange(avg_growth_rate)
+ biggest_increase
+ biggest_decrease
+```
