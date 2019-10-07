@@ -1,0 +1,152 @@
+---
+title: "Modern Data Structure HW03"
+author: "Xueying Huang"
+date: '2019-10-04'
+output:
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+always_allow_html: yes
+---
+
+
+
+```{r}
+
+for ( i in c(10:1)) {   
+  if(i==1){
+    paste(i, "little monkey jumping on the bed,","\n", "He fell down and bumped his head,", "\n","Mama called the doctor and the doctor said,", "\n", '"No more monkeys jumping on the bed!"',"\n","\n")
+    paste("No little monkeys jumping on the bed,","\n", "None fell down and bumped their head,", "\n","Papa called the doctor and the doctor said,", "\n", '"Put those monkeys right to bed!"')
+  } else{
+    paste(i, "little monkeys jumping on the bed,","\n", "One fell down and bumped his head,", "\n","Mama called the doctor and the doctor said,", "\n", '"No more monkeys jumping on the bed!"',"\n","\n")
+  }
+}
+for (i in c(10:8)) {
+  cat(i," ", "little monkeys jumping on the bed,","\n", "One fell down and bumped his head,", "\n","Mama called the doctor and the doctor said,", "\n", '"No more monkeys jumping on the bed!"',"\n","\n", sep="")
+}
+                      
+```
+```{r}
+loop_song <- function(animal, num=10) {
+  for ( i in c(num:1)) {   
+  if(i==1){
+    cat(i,"little", animal, "jumping on the bed,","\n")
+    cat("He fell down and bumped his head,", "\n")
+    cat("Mama called the doctor and the doctor said,", "\n")
+    cat('"',"No more", paste(animal,"s",sep=""),"jumping on the bed!",'"',"\n","\n")
+    
+    cat("No little", paste(animal,"s",sep=""), "jumping on the bed,","\n")
+    cat("None fell down and bumped their head,", "\n")
+    cat("Papa called the doctor and the doctor said,", "\n")
+    cat('"', "Put those", paste(animal,"s",sep=""),"right to bed!", '"',"\n","\n")
+  }else{
+    cat(i,"little", paste(animal,"s",sep=""), "jumping on the bed,","\n") 
+    cat("One fell down and bumped his head,", "\n")
+    cat("Mama called the doctor and the doctor said,", "\n")
+    cat('"', "No more", paste(animal,"s",sep=""),"jumping on the bed!", '"',"\n","\n")
+  }
+ }
+}
+loop_song("piglet",3)
+```
+```{r}
+loop_song <- function(animal, num=10) {
+  if(!is.numeric(num)) {
+    # Throw an error
+    stop("num is not of class 'numeric'; it has class '",class(num), "'.")
+  }
+  for ( i in c(num:1)) {   
+  if(i==1){
+    cat(i,"little", animal, "jumping on the bed,","\n")
+    cat("He fell down and bumped his head,", "\n")
+    cat("Mama called the doctor and the doctor said,", "\n")
+    cat('"',"No more", paste(animal,"s",sep=""),"jumping on the bed!",'"',"\n","\n")
+    
+    cat("No little", paste(animal,"s",sep=""), "jumping on the bed,","\n")
+    cat("None fell down and bumped their head,", "\n")
+    cat("Papa called the doctor and the doctor said,", "\n")
+    cat('"', "Put those", paste(animal,"s",sep=""),"right to bed!", '"',"\n","\n")
+  }else{
+    cat(i,"little", paste(animal,"s",sep=""), "jumping on the bed,","\n") 
+    cat("One fell down and bumped his head,", "\n")
+    cat("Mama called the doctor and the doctor said,", "\n")
+    cat('"', "No more", paste(animal,"s",sep=""),"jumping on the bed!", '"',"\n","\n")
+  }
+ }
+}
+loop_song("piglet",letters)
+```
+```{r}
+loop_song <- function(animal, activity, probability, num=10) {
+  people <- c("Mama", "Papa")
+  weights <- c(probability, 1-probability)
+  for ( i in c(num:1)) {  
+    if(i==1){
+    cat(i, "little", animal, activity, "on the bed,","\n")
+    cat("He fell down and bumped his head,", "\n")
+    cat(sample(people, prob = weights, size = 1), "called the doctor and the doctor said,", "\n")
+    cat('"',"No more", paste(animal,"s",sep=""), activity, "on the bed!",'"', "\n","\n")
+    
+    cat("No little", paste(animal,"s",sep=""), activity, "on the bed,","\n")
+    cat("None fell down and bumped their head,", "\n")
+    cat(sample(people, prob = weights, size = 1), "called the doctor and the doctor said,", "\n")
+    cat('"', "Put those", paste(animal,"s",sep=""),"right to bed!",'"', "\n","\n")
+  }else{
+    cat(i, "little", paste(animal,"s",sep=""), activity, "on the bed,","\n")
+    cat("One fell down and bumped his head,", "\n")
+    cat(sample(people, prob = weights, size = 1), "called the doctor and the doctor said,", "\n")
+    cat('"', "No more", paste(animal,"s",sep=""), activity, "on the bed!",'"',"\n","\n")
+  }
+ }
+}
+loop_song("kangaroo","dancing", 0.5, 3)
+```
+```{r}
+plot(1, type="n", xlab="", ylab="", xlim = c(0, 10), ylim = c(0, 10))
+for(i in c(0:10)){
+  lines(x = c(0,10), y = c(i,i))
+}
+```
+```{r}
+plot(1, type="n", xlab="", ylab="", xlim = c(0, 10), ylim = c(0, 10))
+for(i in c(0:10)){
+  h_lines <- lines(x = c(0,10), y = c(i,i))
+  v_lines <- lines(x = c(i,i), y = c(0,10))
+}
+```
+```{r}
+plot(1, type="n", xlab="", ylab="", xlim = c(0, 10), ylim = c(0, 10))
+for(i in c(0:10)){
+  h_lines <- lines(x = c(0,10), y = c(i,i))
+  v_lines <- lines(x = c(i,i), y = c(0,10))
+  points(x = i, y = i)
+  points(x = i, y = 10 -i)
+}
+```
+```{r}
+draw_plot <- function(n=10, h_lines=TRUE, v_lines=TRUE, points=TRUE){
+  par(pin=c(4,4))
+  plot(1, type="n", xlab="", ylab="", xlim = c(0, n), ylim = c(0, n))
+  for(i in c(0:n)){
+  if(h_lines == TRUE){
+   lines(x = c(0,n), y = c(i,i))
+    }
+  if(v_lines == TRUE){
+  lines(x = c(i,i), y = c(0,n))
+  }
+  if(points == TRUE){
+  points(x = i, y = i)
+  points(x = i, y = n -i)
+  }
+  }
+}
+draw_plot(10, TRUE, TRUE, TRUE)
+
+```
