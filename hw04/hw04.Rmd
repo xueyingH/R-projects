@@ -1,0 +1,144 @@
+---
+title: "Modern Data Structure HW04"
+author: "Xueying Huang"
+date: '2019-10-12'
+output:
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+always_allow_html: yes
+---
+```{r}
+devtools::install_github("tidyverse/dplyr")
+library(dplyr)
+content <- mget(ls("package:dplyr"), inherits = TRUE)
+dplyr_functions <- Filter(is.function, content)
+
+
+```
+```{r}
+library(purrr)
+function_names <- names(dplyr_functions)
+l <- array(nchar(function_names))
+dimnames(l) <- list(function_names)
+sort(l,decreasing = TRUE)[1]
+```
+```{r}
+name <- names(dplyr_functions)
+df_num_char <-data.frame(function_names, num_char = map_dbl(name, ~nchar(.x)))%>%
+  arrange(desc(num_char))
+df_num_char
+```
+```{r}
+num_args <- map(dplyr_functions, formals) %>%
+  map_dbl(length)%>%
+  sort(decreasing = TRUE)
+data.frame(num_args[1:10])
+most_args <- num_args[1]
+cat('"',names(most_args),'"', "has the most arguments !")
+```
+```{r}
+a <-map(dplyr_functions, formals)
+b <-unlist(unname(a))
+b
+```
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(WDI)
+wdi_data <- WDI(indicator = c("NY.GDP.PCAP.PP.KD", "SP.DYN.IMRT.IN"), start = 1960, end = 2018, extra = TRUE)%>%
+  filter(region != "Aggregates")%>%
+  select(country, year, infmort = NY.GDP.PCAP.PP.KD, gdpcap = SP.DYN.IMRT.IN)
+rownames(wdi_data) <- NULL
+wdi_tidy <- na.omit(wdi_data)
+wdi_tidy
+```
+#Present a list of countries with the 5 highest and the 5 lowest infant mortality rates in 2018 along with their GDP per capita in that year.
+```{r}
+wdi_2018 <- subset(wdi_tidy, year == 2018) %>%
+  arrange(desc(infmort))
+wdi_2018
+highest_infmort <- head(wdi_2018, 5)%>%
+  arrange(desc(infmort))
+lowest_infmort <-tail(wdi_2018,5)%>%
+  arrange(infmort)
+list_highest <- as.list(highest_infmort)
+list_lowest <- as.list(lowest_infmort)
+list_highest
+list_lowest
+```
+```{r}
+df = wdi_tidy
+lm_fit <- lm(infmort ~ gdpcap, data=df)
+ggplot(df, aes(x=gdpcap, y=infmort))+
+  geom_point() +
+  geom_line(data = fortify(lm_fit), aes(x = gdpcap, y = .fitted), color ='blue')+ labs(title=" PREDICTING INFANT MORTALITY FROM GDP PER CAPITA", x="GDP per capita", y="infant mortality")+ theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+```{r}
+wdi_region <- WDI(indicator = c("NY.GDP.PCAP.PP.KD", "SP.DYN.IMRT.IN"), start = 1960, end = 2018, extra = TRUE)%>%
+  select(country, year, infmort = NY.GDP.PCAP.PP.KD, gdpcap = SP.DYN.IMRT.IN, region)%>%
+  na.omit()
+wdi_region
+
+```
+```{r}
+lm_region <- wdi_region %>% 
+  split(wdi_region$region) %>%
+  map(~ lm(infmort ~ gdpcap, data = .))
+
+region_coef <- lm_region %>%
+  map(~ coef(.)) %>%
+  map_dbl("gdpcap")%>%
+  sort()
+
+region_coef_table <- data.frame(region_coef)
+region_coef_table 
+```
+
+```{r}
+lm_country <- wdi_tidy %>% 
+  split(wdi_tidy$country) %>%
+  map(~ lm(infmort ~ gdpcap, data = .))
+
+country_coef <- lm_country %>%
+  map(~ coef(.)) %>%
+  map_dbl("gdpcap")%>%
+  sort()
+country_coef 
+lm_country
+
+walk(country_coef, hist)
+```
+
+```{r}
+lm_country_2 <- wdi_tidy %>%
+  mutate(squared_gdpcap = gdpcap**2)
+
+r1 <-lm_country_2 %>%
+  split(lm_country_2$country) %>%
+  map(~ lm(infmort ~ gdpcap, data = .))%>%
+  map(summary)%>%
+  map("adj.r.squared")
+
+r2 <-lm_country_2 %>%
+  split(lm_country_2$country) %>%
+  map(~ lm(infmort ~ gdpcap + squared_gdpcap, data = .))%>%
+  map(summary)%>%
+  map("adj.r.squared")
+
+x1<-data.frame(r1)
+x2<-data.frame(r2)
+full_join(x1, x2)
+```
+ I recommend to keep the squared term since the adjusted R squared has been improved.
