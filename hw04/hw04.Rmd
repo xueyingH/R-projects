@@ -3,15 +3,15 @@ title: "Modern Data Structure HW04"
 author: "Xueying Huang"
 date: '2019-10-12'
 output:
-  html_document:
-    highlight: textmate
-    theme: spacelab
+  html_notebook:
     toc: yes
   pdf_document:
     toc: yes
   word_document:
     toc: yes
-  html_notebook:
+  html_document:
+    highlight: textmate
+    theme: spacelab
     toc: yes
 always_allow_html: yes
 ---
@@ -47,8 +47,18 @@ cat('"',names(most_args),'"', "has the most arguments !")
 ```{r}
 a <-map(dplyr_functions, formals)
 b <-unlist(unname(a))
-b
+
+df_args <- as.data.frame(matrix( data=NA, nrow = 1, ncol=1))
+for (i in 1:length(b)){
+  df_args <- rbind(df_args,names(b[i]))
+}
+
+table(df_args) %>% 
+  as.data.frame() %>% 
+  arrange(desc(Freq)) %>%
+  head(5)
 ```
+The most common argument is the ellipsis, or dot-dot-dot, argument. It allows people to simplify their code instead of explicitly naming and setting a default and passing it to the function.
 
 ```{r}
 library(tidyverse)
@@ -57,12 +67,14 @@ library(dplyr)
 library(WDI)
 wdi_data <- WDI(indicator = c("NY.GDP.PCAP.PP.KD", "SP.DYN.IMRT.IN"), start = 1960, end = 2018, extra = TRUE)%>%
   filter(region != "Aggregates")%>%
-  select(country, year, infmort = NY.GDP.PCAP.PP.KD, gdpcap = SP.DYN.IMRT.IN)
-rownames(wdi_data) <- NULL
-wdi_tidy <- na.omit(wdi_data)
+  select(country, year, infmort = NY.GDP.PCAP.PP.KD, gdpcap = SP.DYN.IMRT.IN) 
+
+wdi_tidy <- na.omit(wdi_data) %>%
+  arrange(country)
 wdi_tidy
+
 ```
-#Present a list of countries with the 5 highest and the 5 lowest infant mortality rates in 2018 along with their GDP per capita in that year.
+
 ```{r}
 wdi_2018 <- subset(wdi_tidy, year == 2018) %>%
   arrange(desc(infmort))
@@ -89,10 +101,6 @@ ggplot(df, aes(x=gdpcap, y=infmort))+
 wdi_region <- WDI(indicator = c("NY.GDP.PCAP.PP.KD", "SP.DYN.IMRT.IN"), start = 1960, end = 2018, extra = TRUE)%>%
   select(country, year, infmort = NY.GDP.PCAP.PP.KD, gdpcap = SP.DYN.IMRT.IN, region)%>%
   na.omit()
-wdi_region
-
-```
-```{r}
 lm_region <- wdi_region %>% 
   split(wdi_region$region) %>%
   map(~ lm(infmort ~ gdpcap, data = .))
@@ -104,21 +112,18 @@ region_coef <- lm_region %>%
 
 region_coef_table <- data.frame(region_coef)
 region_coef_table 
+
 ```
 
 ```{r}
 lm_country <- wdi_tidy %>% 
   split(wdi_tidy$country) %>%
-  map(~ lm(infmort ~ gdpcap, data = .))
+  map(~ lm(infmort ~ gdpcap, data = .))%>%
+  map(summary)%>%
+  map("coefficients") 
 
-country_coef <- lm_country %>%
-  map(~ coef(.)) %>%
-  map_dbl("gdpcap")%>%
-  sort()
-country_coef 
-lm_country
+head(lm_country)
 
-walk(country_coef, hist)
 ```
 
 ```{r}
