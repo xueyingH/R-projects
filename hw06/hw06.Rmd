@@ -1,0 +1,129 @@
+---
+title: "Modern Data Structure HW06"
+author: "Xueying Huang"
+date: '2019-10-25'
+output:
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+always_allow_html: yes
+---
+1. Scrabble
+```{r}
+library(stringr)
+library(ScrabbleScore)
+data(twl06)
+scrabble <- twl06
+```
+```{r}
+#a) Words with z
+zwords <- str_subset(scrabble, pattern="z")
+num <- str_count(scrabble, pattern = "z")
+table(num)
+```
+```{r}
+#b) Word lengths
+length <- str_length(scrabble)
+hist(length)
+```
+```{r}
+#c) Vowels
+vowels <- "^[aeiou][:alpha:]*[aeiou]$"
+vowel_start_end <- str_subset(scrabble, pattern = vowels)
+length(vowel_start_end)
+```
+```{r}
+#d) Longest word with New York
+s1 <- str_replace("New York", pattern = " ", replacement = "")
+s2 <- tolower(str_split(s1, pattern = "")[[1]])
+s3 <- str_c(s2, collapse ="")
+ny_match <- str_c("^[",s3, "]+$")
+has_ny <- str_subset(scrabble, ny_match)
+has_ny[order(str_length(has_ny), decreasing = TRUE)][1]
+```
+```{r}
+#e) Consonants only:Find the word(s) with the largest number of consecutive consonants.
+pattern2 <- "[^aeiou]+"
+num_cc <- str_count(scrabble, pattern = pattern2)
+table(num_cc)
+max(num_cc)
+```
+
+```{r}
+#f) Bonuzz (optional)
+z1 <-"z.*z"
+contain_zz <- str_subset(scrabble, pattern=z1)
+zz_words <- str_extract_all(contain_zz, pattern = z1)
+zz_unique <- unique(zz_words)
+z2 <- "[^z]*"
+no_zz <- str_subset(zz_unique, pattern = z2)
+no_zz_letters <- str_extract_all(no_zz, pattern = z2)
+letters <- unlist(no_zz_letters)
+max(str_length(letters))
+```
+
+2. Emergency Hospital Injuries
+```{r}
+#a) Fractures
+library(stringi)
+emergency <-stri_read_lines("emergency.csv")
+frac <- c("FRACTURED", "FRACTURES", "FRACTURE")
+frac_match <- str_c(frac, collapse = "|")
+has_frac <- str_subset(emergency, frac_match)
+matches <- str_extract(has_frac, frac_match)
+length(matches)
+as.data.frame(has_frac)
+```
+
+```{r}
+#c) Body Parts
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+body <- c("HAND", "SKULL", "HIP", "FINGER", "ANKLE",  "FOREARM","TOE","RIB", "KNEE", "ELBOW","BONE", "FACE","NOSE", "FOOT", "SHOULDER", "WRIST" )
+body_match <- str_c(body, collapse = "|")
+has_body <- str_subset(has_frac, body_match)
+body_parts <- unlist(str_extract_all(has_body, body_match))
+body_df <- as.data.frame(table(body_parts))
+body_df
+ggplot(body_df, aes(x=body_parts, y=Freq, color = body_parts)) + geom_col() +labs(
+    title = "Statistics about fractured body parts",
+    x = "Body parts",
+    y = "Number"
+  )+ theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+#d) Age and Gender
+inf <- "[1-9]?[0-9]\\s*(YO|YR|MO)\\s*(M|F)"
+has_inf <- str_subset(emergency, pattern = inf)
+match_inf <- str_extract(has_inf, pattern = inf)
+
+ages <- str_extract(match_inf, pattern = "[1-9]?[0-9]")
+gender <- str_extract(match_inf, pattern = "(M|F)")
+unit <- str_extract(match_inf, pattern = "(YO|YR|MO)")
+ages_numeric <- as.numeric(ages)
+ages_clean <- ifelse(unit == "MO", ages_numeric/12, ages_numeric)
+age <- round(ages_clean, digits = 2)
+df <- as.data.frame(cbind(gender,age))
+df
+as.data.frame(table(gender))
+
+by_gender_injury <- df %>%
+  group_by(age,gender) %>%
+  count()
+by_gender_injury
+ggplot(by_gender_injury, aes(x=as.numeric(age), y=n,color=gender)) + geom_line() +labs(
+    title = "Relationship between number of injuries and age",
+    x = "Age",
+    y = "Number of injuries"
+  )+ theme(plot.title = element_text(hjust = 0.5))
+```
