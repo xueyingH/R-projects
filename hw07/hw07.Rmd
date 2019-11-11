@@ -1,0 +1,105 @@
+---
+title: "Modern Data Structure HW07"
+author: "Xueying Huang"
+date: '2019-11-03'
+output:
+  html_notebook:
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+always_allow_html: yes
+---
+```{r}
+# 1. Define the base URL
+library(httr)
+endpoint <- "https://data.lacity.org/resource/63jg-8b9z.csv"
+# 2. Send a simple GET request
+req <- GET(endpoint)
+# Status
+req$status_code
+# Structure
+str(req,max.level = 1)
+```
+```{r}
+# 3. Get the content of the response
+LAcrime_data <- content(req)
+crime_df <- as.data.frame(LAcrime_data)
+dim(crime_df)
+crime_df
+```
+```{r}
+# 4. Get your access token
+R.home(component = "home")
+# open .Renviron for editing
+usethis::edit_r_environ()
+```
+
+```{r}
+# Create list with address query
+query_params <- list(
+  "$limit" = "10000",
+  "$$app_token" = Sys.getenv("LACRIME_APP_TOKEN"))
+    
+# Make parameter-based call to httpbin, with query_params
+get_result <-
+  GET(endpoint, query = query_params)
+
+# Status
+get_result$status_code
+```
+
+```{r}
+# 5. Limiting your query
+query_params <- list(
+  "$limit" = "10000",
+  "$$app_token" = Sys.getenv("LACRIME_APP_TOKEN"),
+  area = "01",
+  status = "AA"
+  )
+    
+get_result_limit <-
+  GET(endpoint, query = query_params)
+
+get_result_limit$status_code
+# Comment: I am selecting the crime events which happened in area "01" (Central area) and whose status were "AA" (Adult Arrested).
+```
+```{r}
+# 6. Locations
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+geomap <- crime_df %>%
+  select(location, lat, lon) %>%
+  head(50)
+geomap
+```
+```{r}
+library(stringr)
+URL_map <- "https://nominatim.openstreetmap.org/reverse"
+output <- list()
+for(i in 1:length(geomap$location)){
+    # Send a GET request to url
+    url = str_c(URL_map, "?format=jsonv2&lat=", geomap$lat[i], "&lon=",geomap$lon[i])
+    result <- GET(url)
+    
+    if(http_error(result)){
+	    warning("The request produced an error.")
+    } else {
+       output[i] <- content(result)$display_name
+      }
+    
+    # Delay for 0.5 seconds between requests
+    Sys.sleep(0.1)
+}
+```
+```{r}
+location_revgeo <- unlist(output)
+geomap['location_revgeo'] <- location_revgeo
+geomap
+```
