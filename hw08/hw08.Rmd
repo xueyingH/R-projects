@@ -1,0 +1,190 @@
+---
+title: "Modern Data Structure HW08"
+author: "Xueying Huang"
+date: '2019-11-15'
+output:
+  html_notebook:
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+always_allow_html: yes
+---
+
+```{r}
+# 1.Choose an API
+#  a) I choose the Metropolitan Museum of Art Collection API
+#  b) API documentation : https://metmuseum.github.io/
+#  c) API base URL: https://collectionapi.metmuseum.org/public/collection/v1
+```
+
+```{r}
+# 2.Authentication
+#  At this time, the API do not require API users to register or obtain an API key to use the service.
+```
+
+```{r}
+# 3.Send a Simple GET request
+# Load package
+library(httr)
+library(stringr)
+# The API url
+base_url <- "https://collectionapi.metmuseum.org/public/collection/v1"
+endpoint <- "https://collectionapi.metmuseum.org/public/collection/v1/search"
+
+# Set query parameters
+query_params <- list(
+  q = "impressionism",
+  isHighlight = TRUE,
+  isOnView = TRUE
+  )
+
+# a) Get data from API
+resp <- GET(endpoint, query = query_params)
+    
+# b) Status
+resp$status_code
+
+# c) return format
+http_type(resp)
+content(resp)$total
+```
+```{r}
+# 4.Parse the response and Create a dataset
+# a) return a R object (Here is a dataframe which includes the ids of all related art works)
+library(jsonlite)
+df <- fromJSON(content(resp,"text"), simplifyDataFrame = TRUE)
+related_works <- as.data.frame(df$objectIDs)
+colnames(related_works) <- c("objectIDs")
+related_works
+```
+
+```{r}
+# 4. b) create a dataset
+objectIDs <- unlist(content(resp)$objectIDs)
+Department <- list()
+Title <- list()
+Medium <- list()
+Artist <- list()
+Nationality <- list()
+Year <- list()
+Link <- list()
+for(i in 1:content(resp)$total){
+  url <- str_c(base_url, "/objects/", objectIDs[i])
+  object <- GET(url)
+ 
+  if(http_error(object)){
+	    warning("The request produced an error.")
+  } 
+  Department[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$department
+  Title[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$title
+  Medium[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$medium
+  Artist[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$artistDisplayName
+  Nationality[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$artistNationality
+  Year[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$objectDate
+  Link[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$primaryImage
+}
+df <- data.frame( "Artist" = unlist(Artist), "Nationality" = unlist(Nationality), "Year" = unlist(Year), "Title" = unlist(Title), "Medium" = unlist(Medium),"Department" = unlist(Department),"Link" = unlist(Link))
+df
+```
+
+```{r}
+# 4. c) save the data frame in a .RDS file
+saveRDS(df, file = "data.rds")
+data.copy <- readRDS(file = "data.rds")
+data.copy
+```
+
+```{r}
+# 4. c) make some summary statistics
+# 1) departments with most impressionism art works
+library(dplyr)
+library(ggplot2)
+mostcommon <- data.copy %>%
+  group_by(Department) %>%
+  count() %>%
+  arrange(desc(n))
+
+ggplot(head(mostcommon), aes(x=Department, y=n, color = Department)) + geom_col() +labs(
+    title = "Most common in which department?",
+    y = "Number"
+  )+ theme(plot.title = element_text(hjust = 0.5), 
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank()) 
+```
+
+```{r}
+# 2) Top 5 artists with most art works
+represent_artists <- data.copy %>%
+  subset(!Artist == "") %>%
+  group_by(Artist) %>%
+  count() %>%
+  arrange(desc(n))
+head(represent_artists,5)
+```
+
+```{r}
+# 5. API Client
+# a) & b)
+library(httr)
+library(stringr)
+library(dplyr)
+library(ggplot2)
+art_api <- function(search = "Realism", famous = TRUE, onview = TRUE) {
+  
+  base_url <- "https://collectionapi.metmuseum.org/public/collection/v1"
+  endpoint <- "https://collectionapi.metmuseum.org/public/collection/v1/search"
+  
+  query_params <- list(
+  q = search,
+  isHighlight = famous,
+  isOnView = onview
+  )
+  resp <- GET(endpoint, query = query_params)
+  cat("The status of request is ",resp$status_code, "\n")
+  cat("There are ",content(resp)$total, " works about ", search, " in the Metropolitan Museum.")
+  
+  library(jsonlite)
+  objectIDs <- unlist(content(resp)$objectIDs)
+  Department <- list()
+  Title <- list()
+  Medium <- list()
+  Artist <- list()
+  Nationality <- list()
+  Year <- list()
+  Link <- list()
+  
+  for(i in 1:content(resp)$total){
+    url <- str_c(base_url, "/objects/", objectIDs[i])
+    object <- GET(url)
+ 
+  if(http_error(object)){
+	    warning("The request produced an error.")
+  } 
+  Department[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$department
+  Title[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$title
+  Medium[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$medium
+  Artist[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$artistDisplayName
+  Nationality[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$artistNationality
+  Year[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$objectDate
+  Link[i] <- fromJSON(content(object,"text"), simplifyVector = FALSE)$primaryImage
+  }
+  
+  df <- data.frame( "Artist" = unlist(Artist), "Nationality" = unlist(Nationality), "Year" = unlist(Year), "Title" =  unlist(Title), "Medium" = unlist(Medium),"Department" = unlist(Department),"Link" = unlist(Link))
+
+ print(df)
+}
+art_api_client <- art_api()
+```
+
+```{r}
+# 5. c)
+saveRDS(art_api_client, file = "api_client_output.RDS")
+art.copy <- readRDS(file = "api_client_output.RDS")
+art.copy
+```
