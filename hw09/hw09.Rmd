@@ -1,0 +1,146 @@
+---
+title: "Modern Data Structure HW09"
+author: "Xueying Huang"
+date: '2019-11-19'
+output:
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+always_allow_html: yes
+---
+```{r}
+# 1. Get HTML
+library(rvest)
+url <- "https://en.wikipedia.org/wiki/Mitch_McConnell"
+xml <- read_html(url)
+xml
+```
+```{r}
+# 2. Get the info box
+# a) Find the CSS class of the infobox.
+html_nodes(xml, css ="table")
+# I think the class of infobox is "infobox vcard"
+```
+
+```{r}
+# b) Extract the part of the HTML document that contains the infobox using the CSS information.
+infobox_element <- html_nodes(xml, css =".infobox.vcard")
+infobox_element
+```
+```{r}
+# 3. Make a data frame
+# a) Parse the infobox table HTML you obtained above into a data frame.
+wiki_table <- html_table(infobox_element)
+wiki_table
+```
+```{r}
+# b) Name the columns of the table you obtain key and value. So, in the example for Mitch McConnell, "Deputy" would be the key, and the content information (i.e. the value) is "John Cornyn".
+#colnames(wiki_table) <- c("key", "value")
+mitch_df <- data.frame(wiki_table)
+colnames(mitch_df) <- c("key", "value")
+mitch_df
+```
+```{r}
+# c) Filter the data frame (and rename variables if necessary) to the "Full name", "Political Party", and "Children". Use this selection of variables for all subsequent questions.
+page_title <- html_text(html_node(infobox_element, css=".fn"))
+name_df <- data.frame(key = "Full name", value = page_title)
+library(tidyverse)
+party <- mitch_df %>%
+  filter(key == "Political party")
+children <- mitch_df %>%
+  filter(key == "Children")
+sub_df <- rbind(name_df, party, children)
+sub_df
+```
+```{r}
+# 4. Make a function
+library(rvest)
+library(tidyverse)
+get_wiki_info<- function(url){
+  xml <- read_html(url)
+  infobox_element <- html_nodes(xml, css =".infobox.vcard")
+  mitch_df <- data.frame(html_table(infobox_element))
+  colnames(mitch_df) <- c("key", "value")
+  
+  page_title <- html_text(html_node(infobox_element, css=".fn"))
+  name_df <- data.frame(key = "Full name", value = page_title)
+  
+  party <- mitch_df %>%
+  filter(key == "Political party")
+  
+  if(any(mitch_df$key == "Children")){
+    children <- mitch_df %>%
+    filter(key == "Children")
+  }else{
+    children <- data.frame(key = "Children", value = "NA")
+  }
+  
+  
+  df <- rbind(name_df, party, children)
+  return(df)
+}
+get_wiki_info("https://en.wikipedia.org/wiki/Tammy_Duckworth")
+get_wiki_info("https://en.wikipedia.org/wiki/Susan_Collins")
+
+```
+
+```{r}
+# 5. Get all senators' pages
+# a)
+all_url <- "https://en.wikipedia.org/wiki/Current_members_of_the_United_States_Senate"
+all_xml <- read_html(all_url)
+links <- all_xml %>%
+  html_nodes(xpath="//tr/th/span/span/span/a") %>%
+    xml_attr("href")
+link_list <- unlist(lapply(links, function(x) str_c("https://en.wikipedia.org/", x)))
+link_list[1:5]
+```
+```{r}
+# b)
+senators_df <- data.frame(matrix(ncol = 3, nrow = 0))
+for(link in link_list){
+  l <- get_wiki_info(link)
+  l_transpose <- as.data.frame(t(as.matrix(l$value)))
+  senators_df <- rbind(senators_df, l_transpose)
+} 
+colnames(senators_df) <- c("Full name", "Political party", "Children")
+print(senators_df)
+```
+```{r}
+# c) summary statistics
+#replace values which contain only words(no digits) with digit. e.g. "Katherine" and "Levi Sanders"
+child_replace <- str_replace(senators_df$Children, pattern="^[A-Z][a-z]+?\\s[A-Z][a-z]+", replacement = "1")
+child_list <- str_replace(child_replace, pattern="^[A-Z][a-z]+", replacement = "1")
+```
+
+```{r}
+child_match <- "[1-9]"
+children <- str_subset(child_list, pattern=child_match)
+children_num <- str_extract(children, pattern = child_match)
+mean(unlist(lapply(children_num, function(x) as.numeric(x))))
+```
+
+```{r}
+Republican <- str_subset(senators_df$`Political party`, "Republican")
+r <- data.frame(table(str_extract(Republican, "Republican")))
+
+Democratic <- str_subset(senators_df$`Political party`, "Democratic")
+d <- data.frame(table(str_extract(Democratic, "Democratic")))
+
+Independent <- str_subset(senators_df$`Political party`, "Independent")
+i <- data.frame(table(str_extract(Independent, "Independent")))
+
+party <- rbind(r,d,i)
+colnames(party) <- c("Party", "Freq")
+party
+
+# Note: There is one person called "Bernie Sanders", who is both democratic and independent according to the information we scrape from wikipedia. His "Political party" shows like this, "Democratic (2015–2016; 2019–present)[1]Independent (Congressional affiliation, until 1969; 1978–present)".
+```
+
