@@ -1,0 +1,59 @@
+---
+title: "MDS Final Project Proposal"
+subtitle: 'R Package for the Metropolitan Museum of Art Collection API- Artwork Collection. \n Option B. Functional / API Project.'
+          
+author: "Xueying Huang"
+date: '2019-11-29'
+output:
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+always_allow_html: yes
+---
+
+### Description
+The Metropolitan Museum of Art presents over 5,000 years of art from around the world for everyone to experience and enjoy. Since it was founded in 1870, The Met has always aspired to be more than a treasury of rare and beautiful objects. Every day, art comes alive in the Museum’s galleries and through its exhibitions and events, revealing both new ideas and unexpected connections across time and across cultures.
+
+The Metropolitan Museum of Art provides select datasets of information on more than 470,000 artworks in its Collection for unrestricted commercial and noncommercial use. These select datasets are now available for use in any media without permission or fee; they also include identifying data for artworks under copyright. The datasets support the search, use, and interaction with the Museum’s collection. The Met’s Open Access datasets are available through API. The API (RESTful web service in JSON format) gives access to all of The Met’s Open Access data and to corresponding high resolution images (JPEG format) that are in the public domain. This project aims to make a R package that allows people to directly download the images, get the information of the departments and objects they are interested in the R environment. Also, I try to use the links returned by the query and apply web scrapping skills to get some addtional information the API cannot provide.
+
+### Links to data sources
+The API can be accessed by navigating to https://collectionapi.metmuseum.org/public/collection/v1/
+
+The API returns a listing of all valid Object IDs available to use two parameters: metadataDate and departmentIds
+For example: https://collectionapi.metmuseum.org/public/collection/v1/objects?metadataDate=2018-10-22&departmentIds=3|9|12
+
+![The list of objectIds returned by the example of query.](Objects.png)
+The API can also return a detailed record for an object, containing all open access data about that object, including its image (if the image is available under Open Access)
+For example: https://collectionapi.metmuseum.org/public/collection/v1/objects/[objectID]
+
+![Part of the detailed record of one object returned by the example of query.](Object.png)
+
+### Steps
+Query API to obtain data about the departments and objects
+
+Handle, parse, and transform JSON into a data frame
+
+Extract and clean (messy and textual) fields, such as countries, persons, date
+
+Process strings and use regular expressions
+
+Use functions to handle repetitive tasks
+
+Use the links for collections to download the images
+
+Use web scrapping to get the location of collections in the museum
+
+Make it into an R package
+
+### Challenges
+
+When I try to use the link of each collection and web scrape the information, it cannot return any nodes because the information in in Java format and need to use Rselenium. I am not familiar with Rselenium and hope to get some advice and help to improve my web scrapping skills.
+
+I try to provide a PDF fromat file for each collection, which include the image of this collection and a map on which the location of this collection is marked. It seems helpful for people who use my R package. But the difficulty is that I need to use shiny to produce dynamic documents. I will try my best to achieve this function.
