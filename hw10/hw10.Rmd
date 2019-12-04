@@ -1,0 +1,167 @@
+---
+title: "Modern Data Structure hw10"
+author: "Xueying Huang"
+date: '2019-11-26'
+output:
+  html_notebook:
+    toc: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+  html_document:
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Read necessary libraries
+library(DBI)
+library(RMySQL)
+```
+
+```{r, echo=TRUE}
+witch_con <- dbConnect(
+  RMySQL::MySQL(),
+  user = 'student',
+  password = 'mds-is-fun',
+  dbname = 'witchcraft',
+  host = 'tbrambor.csbmzoea3lu9.us-east-1.rds.amazonaws.com',
+  port = 3306
+)
+```
+
+```{r}
+witch_con
+```
+```{sql, connection="witch_con"}
+-- 1. Getting to know the data
+-- a) Show a list of the tables included in the database.
+SHOW TABLES
+```
+
+```{sql, connection="witch_con"}
+-- b) Display the column names for the table accused.
+DESCRIBE accused
+```
+```{sql, connection="witch_con"}
+-- c) How many people are included in the accused table?
+SELECT COUNT(*)
+FROM accused
+```
+
+```{sql, connection="witch_con"}
+-- d) Display the columns firstname, sex, and age for 5 cases in the accused table.
+SELECT firstname, sex, age
+FROM accused
+LIMIT 5
+```
+
+```{sql, connection="witch_con"}
+-- e) Looks like the age is missing for some observations. Count the number of nonmissing values for age in the data.
+SELECT COUNT(age)
+FROM accused
+```
+
+```{sql, connection="witch_con"}
+-- d) Show a list of unique occupations.
+SELECT DISTINCT occupation
+FROM accused
+```
+
+```{sql, connection="witch_con"}
+-- 2. Seeing the Devil
+DESCRIBE devilappearance
+```
+
+```{sql, connection="witch_con"}
+-- a) List the unique devil_types in the data.
+SELECT DISTINCT devil_type
+FROM devilappearance
+```
+
+```{sql, connection="witch_con"}
+-- b) There is also a little description of the type of the devil sighting in the devil_text column. How many of the sightings mention the word "black" in the description? 
+SELECT COUNT(devil_text)
+FROM devilappearance
+WHERE devil_text LIKE '%black%'
+```
+
+```{sql, connection="witch_con"}
+-- c) What proportion of the devils (in devil_type) are male?
+SELECT (COUNT(devil_type)*100.0/(SELECT COUNT(*) FROM devilappearance)) AS prop_male
+FROM devilappearance
+WHERE devil_type = 'Male'
+```
+
+```{sql, connection="witch_con"}
+-- 3. The trial
+DESCRIBE trial
+```
+
+```{sql, connection="witch_con"}
+-- a) What are the average and maximum numbers of male and female accusers?
+SELECT AVG(female_accusers) AS avg_female_accusers,
+MAX(female_accusers) AS max_female_accusers,
+AVG(male_accusers) AS avg_male_accusers,
+MAX(male_accusers) AS max_male_accusers
+FROM trial
+```
+
+```{sql, connection="witch_con"}
+-- b) Count the number of sentences by sentence type. List them in a table (in descending order), excluding missing values. Rename the column headings to something sensible.
+SELECT sentence, 
+COUNT(sentence) AS num_of_sentence
+FROM trial
+WHERE sentence IS NOT NULL
+GROUP BY sentence
+ORDER BY num_of_sentence DESC
+```
+```{sql, connection="witch_con"}
+-- c) Do the number of accusers matter for the verdict? Compare the average number of accusers by the type of verdict. Again make sure the table is sorted and the headings make sense.
+SELECT verdict, 
+AVG(female_accusers + male_accusers) AS avg_num_accusers
+FROM trial
+GROUP BY verdict
+ORDER BY avg_num_accusers DESC
+-- Comment: I think that the number of accusers matters for the verdict because there exists obvious difference between the average number of accusers of different types of verdict.
+```
+
+```{sql, connection="witch_con"}
+-- 4. Tortured Truth (Bonus)
+SELECT COUNT(t.trialref) AS trial_num, 
+COUNT(confessionref) AS confession_num,
+(COUNT(confessionref)/COUNT(t.trialref)*100.0) AS confession_perc
+FROM trial AS t
+LEFT JOIN confession AS c
+ON t.trialref = c.trialref
+```
+```{sql, connection="witch_con"}
+-- 4. Tortured Truth (Bonus)
+SELECT  (COUNT(confessionref)/COUNT(t.trialref)*100.0) AS confession_perc,
+CASE WHEN tortureref IS NOT NULL THEN 'torture'
+        ELSE 'non_torture' END
+        AS torture_group
+FROM trial as t
+LEFT JOIN confession as c
+ON t.trialref = c.trialref
+LEFT JOIN torture as tor
+ON t.trialref = tor.trialref
+GROUP BY torture_group
+
+```
+
+
+
+
+
+
+
+
+
+
+
