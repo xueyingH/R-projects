@@ -1,0 +1,48 @@
+---
+title: "Find art according to age"
+author: "Xueying Huang"
+date: '2019-12-13'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Find art according to age}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Find those artworks in certain age
+
+In this part, you will use __get_art_age()__ , __sort_time_nation()__ and __get_distribution_country()__ to collect data of artworks and make some summary statistics.
+
+### get_art_age()
+
+You can specify the type of artworks, the start and the end of the period. There are three parameters: Begin, End, class. The defaults of them are: painting artworks during 1600 to 1900.
+```{r}
+library(pickart)
+get_art_age(Begin = 1600, End = 1900, class = "Paintings")
+```
+
+When you give a very short period, there might not be artworks match your classificion, the function will give you a warning and you need to re-enter the begin date and end date.
+```{r}
+get_art_age(Begin = 1620, End = 1650, class = "Sculpture")
+```
+
+### sort_time_nation
+
+This function will help you sort the dataframe returned by get_art_age() according to the nationality of artists and created age. The default value is artworks_in_age.
+```{r}
+sort_time_nation()
+```
+
+### get_distribution_country
+
+This function ranks the country according to the number of artworks in the period you choose in get_art_age() function.The default value is artworks_in_age.
+```{r}
+get_distribution_country()
+```

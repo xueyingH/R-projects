@@ -1,0 +1,64 @@
+---
+title: "Find art according to departments"
+author: "Xueying Huang"
+date: '2019-12-13'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Find art according to departments}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Find those artworks in departments, especially popular artworks
+
+In this part, you will use __get_departments()__, __get_dep_ids()__, __get_artworks_in_dep()__, __get_popular_perc()__, __get_popular_items()__ to get the art data in the departments you choose. Some functions help you pick those popular artworks, then you can learn about one department by these popular artworks when your time is limited.
+
+### get_departments()
+
+This function returns all the departments in the MET museum with their names and ids. Users can pick the departments they are interested in from this departments list.
+```{r}
+library(pickart)
+get_departments()
+```
+### get_departments()
+
+This function will return department ids separated by "|" when users input a list of department names.
+```{r}
+get_dep_ids(dep_list = c('American Decorative Arts','Arms and Armor','Greek and Roman Art'))
+```
+
+### get_artworks_in_dep()
+This function allows uses to give a list of departments they are interested and the update date. Then the function will return a dataframe about the artworks in these departments. The parameters are dep_list and metadataDate. 
+
+```{r}
+get_artworks_in_dep(dep_list = c('American Decorative Arts','Arms and Armor','Greek and Roman Art'), metadataDate = "2019-11-30")
+```
+
+The latest date of updating is the last date of last month. So when you input a date in this month, the function will give you a warning. And you need to re-enter the date.
+```{r}
+get_artworks_in_dep(metadataDate = "2019-12-9")
+```
+
+### get_popular_perc()
+
+Do you want to know the percentage of popular artworks in each department you are interested? This function will compare the percentage of popular artworks. When you visit the museum but have limited time, you can visit those departments with high percentage of popular artworks first. The parameter is a dataframe returned by get_artworks_in_dep(). Default to artworks_in_dep.
+
+```{r}
+get_popular_perc()
+```
+
+### get_popular_items()
+
+This function will just give you the detailed information of popular artworks in each department that you are interested.The parameter is a dataframe returned by get_artworks_in_dep(). Default to artworks_in_dep.
+
+```{r}
+get_popular_items()
+```
+

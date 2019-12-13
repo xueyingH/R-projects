@@ -1,0 +1,62 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
+
+# pickart
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+## Purpose
+The goal of pickart is to help users get detailed information of artworks in the Metropolitan Museum. 
+
+## Installation
+
+You can install the released version of pickart from [CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("pickart")
+```
+
+## Example
+
+This several examples which show you how to use the package:
+
+* Example 1: how many and what kinds of departments the Metropolitan Museum has?
+
+```{r example 1}
+library(pickart)
+## basic example code
+get_departments()
+```
+
+## Functionality
+
+There are multiple functions existed in pickart package, these are some examples:
+
+* __get_search_results()__ allows users give a certain theme or topic for searching, and will return the details of all artworks match the query.
+
+* __find_represent_dep()__, __find_represent_artists()__, __get_map()__, __get_related_artworks()__ and __download_details()__ can be used for data analysis and crawl for details of artworks after using the get_search_results() function.
+
+* __get_artworks_in_dep()__ allows users to get details of artworks in certain departments they are interested in.
+
+* __get_popular_perc()__ and __get_popular_items()__ should be used after calling __get_artworks_in_dep()__, they can calculate the percentaeg of popular artworks in each department users choose and tell you what are those popular items.
+
+* __get_art_age()__ allows users to search a type of artworks during a period. Users can specify the type of artworks, the start and the end of the period.
+
+* __sort_time_nation()__ and __get_distribution_country()__ should be used after __get_art_age()__, these functions can achieve sorting according to nationality and make summary statistics about the distribution in different countries.
+
+

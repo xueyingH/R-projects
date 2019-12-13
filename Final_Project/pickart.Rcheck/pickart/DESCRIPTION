@@ -1,0 +1,22 @@
+Package: pickart
+Type: Package
+Title: Extract information of artworks in the MET museum by API
+Version: 0.1.0
+Authors@R: person("Xueying", "Huang", email = "xh2434@columbia.edu",
+  role = c("aut", "cre"))
+Maintainer: Xueying Huang <xh2434@columbia.edu>
+Description: Extract information of artworks in the MET museum by API in R. 
+    It combines several functions that allow users to find artworks by departments, 
+    date, classification etc. It also help users to find artworks belonging to 
+    certain theme or topic. Users can choose to download the images, maps 
+    and related artworks information by functions in this package.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: httr, rvest, stringr, dplyr, tidyr, tidyverse, ggplot2,
+        jsonlite, webshot
+RoxygenNote: 7.0.2.9000
+NeedsCompilation: no
+Packaged: 2019-12-13 00:17:28 UTC; huangxueying
+Author: Xueying Huang [aut, cre]
+Built: R 3.6.1; ; 2019-12-13 00:17:32 UTC; unix

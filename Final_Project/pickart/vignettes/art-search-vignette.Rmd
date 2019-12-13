@@ -1,0 +1,97 @@
+---
+title: "Search art according to query"
+author: "Xueying Huang"
+date: '2019-12-13'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Search art according to query}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Search and collect artworks that match your query
+
+In this part, you will use __get_search_results()__ to get the artworks of one theme or topic, you can give any words like "Impressionism", "Realism", "sunflower" etc. And the function will help you find all the artworks in the MET mesuem which match this query. Then, you can use __find_represent_dep()__, __find_represent_artists()__ to learn the represent departments and represent artists. Finally, this package provide useful functions like __get_map()__, __get_related_artworks()__, __download_details()__ for you. These functions combine the techniques of web scraping, webshot and downloading web files. So, they can help you download lots of useful information to your local files.
+
+### get_search_results()
+
+The parameters of this function are search, famous and onview. Defaults are "Realism", TRUE and TRUE. The function will return a dataframe with detailed information of artworks which match the query.
+
+```{r}
+library(pickart)
+realism <- get_search_results(search = "Realism", famous = TRUE, onview = TRUE)
+realism
+```
+
+### find_represent_dep()
+
+This function will find those departments in which your query artworks are most common. The function will return a dataframe of departments and a plot which visualize those departments. The parameter is a dataframe returned by get_search_results(), default to realism.
+```{r}
+find_represent_dep()
+```
+### find_represent_artists()
+
+This function will find those artists who created most artworks that related to your query. The parameter is a dataframe returned by get_search_results(), default to realism. So, the function will return the represent artists of Realism.
+
+```{r}
+find_represent_artists()
+```
+
+### get_map()
+
+This function will use web scraping to crawl the link of map. When you input the objectIDs of one artwork, the function will find the map and webshot, then store in a automatically created directory called maps. Then it will return the location of the artwork to you. The parameters are objectIDs and path.Default is 547802 and "maps/".
+
+```{r}
+get_map(objectIDs = 547802, path = "maps/")
+```
+
+Sometimes, the artwork is not on view in the museum, so the function will return "Not on view" to users.
+
+```{r}
+get_map(objectIDs = 14019)
+```
+
+### get_related_artworks()
+
+This function also relies on web scraping. When you input the objectIDs of the artwork you are interested, the function will crawl the related artworks and return to you a dataframe. The parameter is objectIDs, default to 547802.
+
+```{r}
+get_related_artworks(objectIDs = 547802)
+```
+### download_details(n = 120)
+
+This function will download the images, maps and related artworks to local files. The parameters are dataframe returned by get_search_results() and the number of artworks you want to download. The files are stored in different directories which are created automatically and named with objectIDs. Since this function relies on web scrapping, I set the default number to 10.
+```{r}
+download_details(n = 10)
+```
+
+When the number of artworks you set exceeds the total number of the artworks in the dataframe, the function will give you a warning.
+```{r}
+download_details(n = 120)
+```
+
+### download images
+
+This function can help you download images.
+
+```{r}
+download_images <- function(df = realism, link_col = 'Link', path = "images/"){
+  links <- as.character(df[[link_col]])
+  for(link in links){
+  download.file(link, destfile = paste0(path,basename(link)), method="curl", extra="-k")
+  }
+}
+
+```
+
+```{r}
+download_images(df = realism)
+
+```
